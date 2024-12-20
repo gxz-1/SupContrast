@@ -1,5 +1,5 @@
 ### train main_supcon.py
-
+conda:swin
 ```bash
 python main_supcon.py --batch_size 2 \
   --learning_rate 0.5 \
@@ -9,6 +9,14 @@ python main_supcon.py --batch_size 2 \
   --dataset sp \
   --epochs 100
   ```
+
+nohup python main_supcon.py --batch_size 4 \
+  --learning_rate 0.5 \
+  --temp 0.1 \
+  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp \
+  --epochs 100 > runlog.txt 2>&1 &
 
 ### train main_linear.py
 

@@ -194,7 +194,7 @@ class CustomCNN(nn.Module):
         
         # 定义编码器部分
         self.encoder = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=256, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=1, out_channels=256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(in_channels=256, out_channels=128, kernel_size=3, padding=1),

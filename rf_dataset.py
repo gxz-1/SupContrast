@@ -41,26 +41,43 @@ class SPDataset(Dataset):
                 path_a = os.path.join(class_path, 'a')
                 path_b = os.path.join(class_path, 'b')
 
-                if os.path.exists(path_a) and os.path.exists(path_b):
-                    images_a = [os.path.join(path_a, f) for f in os.listdir(path_a) if os.path.isfile(os.path.join(path_a, f))]
-                    images_b = [os.path.join(path_b, f) for f in os.listdir(path_b) if os.path.isfile(os.path.join(path_b, f))]
-
-                    # 假设 'a' 和 'b' 文件夹中的图像数量相等
-                    for img_a, img_b in zip(sorted(images_a), sorted(images_b)):
-                        # 将图像路径和类别索引一起存储
-                        self.samples.append((img_a, img_b, self.class_to_idx[class_name]))
+                images_a = self._collect_images(path_a) if os.path.exists(path_a) else []
+                images_b = self._collect_images(path_b) if os.path.exists(path_b) else []
+                print(f"Class: {class_name}, Images in 'a': {len(images_a)}, Images in 'b': {len(images_b)}")
+                # 假设 'a' 和 'b' 文件夹中的图像数量相等
+                for img_a, img_b in zip(sorted(images_a), sorted(images_b)):
+                    # 将图像路径和类别索引一起存储
+                    self.samples.append((img_a, img_b, self.class_to_idx[class_name]))
 
         elif data_type == 'test':
-            # 遍历类别文件夹并读取其中的图片,包括所有子文件夹
+            # 遍历类别文件夹并读取其中的图片，包括所有子文件夹
             for class_name in self.class_to_idx.keys():
                 class_path = os.path.join(data_dir, class_name)
                 if os.path.isdir(class_path):
                     # 使用 os.walk 递归遍历子文件夹中的所有文件
                     for root, _, files in os.walk(class_path):
-                        images = [os.path.join(root, f) for f in sorted(files) if os.path.isfile(os.path.join(root, f))]
-                        if images:
-                            self.samples.append((images[0], self.class_to_idx[class_name]))  # 只添加第一个图片和类别索引
+                        for file in sorted(files):
+                            file_path = os.path.join(root, file)
+                            if os.path.isfile(file_path):
+                                # 将图像路径和类别索引一起存储
+                                self.samples.append((file_path, self.class_to_idx[class_name]))
 
+    def _collect_images(self, folder_path):
+        """
+        递归收集文件夹及其子文件夹中的所有图片路径。
+
+        Args:
+            folder_path (str): 文件夹路径。
+
+        Returns:
+            list: 图片路径列表。
+        """
+        images = []
+        for root, _, files in os.walk(folder_path):
+            images.extend(
+                [os.path.join(root, f) for f in sorted(files) if os.path.isfile(os.path.join(root, f))]
+            )
+        return images
 
     def __len__(self):
         # 返回数据集中样本的总数量
@@ -70,8 +87,8 @@ class SPDataset(Dataset):
         if self.data_type == 'train':
             # 获取样本路径和类别索引
             img_path_a, img_path_b, label = self.samples[idx]
-            image_a = Image.open(img_path_a).convert('RGB')
-            image_b = Image.open(img_path_b).convert('RGB')
+            image_a = Image.open(img_path_a).convert('L')
+            image_b = Image.open(img_path_b).convert('L')
 
             # 如果有传入变换，则分别对图像应用变换
             if self.transform:
@@ -84,7 +101,7 @@ class SPDataset(Dataset):
         elif self.data_type == 'test':
             # 获取测试图像和标签
             img_path, label = self.samples[idx]
-            image = Image.open(img_path).convert('RGB')
+            image = Image.open(img_path).convert('L')
 
             # 如果有传入变换，则对图像应用变换
             if self.transform:

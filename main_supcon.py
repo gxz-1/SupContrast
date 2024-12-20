@@ -145,7 +145,9 @@ def set_loader(opt):
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     
     if opt.dataset == 'sp':
+        # 数据集预处理的过程 
         train_transform = transforms.Compose([
+        # transforms.CenterCrop((1500,700)),
         transforms.CenterCrop((500,500)),
         transforms.ToTensor()
         ])
