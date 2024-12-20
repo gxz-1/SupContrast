@@ -15,7 +15,7 @@ from rf_dataset import SPDataset
 from util import TwoCropTransform, AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model
-from networks.resnet_big import CustomCNN, SupConResNet
+from networks.resnet_big import CustomCNN, CustomCNNmini, SupConResNet
 from losses import SupConLoss
 
 # try:
@@ -52,7 +52,7 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet50')
+    parser.add_argument('--model', type=str, default='CustomCNN')
     parser.add_argument('--dataset', type=str, default='sp',
                         choices=['cifar10', 'cifar100', 'path','rf','sp'], help='dataset')
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
@@ -192,7 +192,12 @@ def set_loader(opt):
 
 def set_model(opt):
     if opt.dataset == 'sp':
-        model = CustomCNN()
+        if opt.model=='CustomCNN':
+            model = CustomCNN()
+        elif opt.model=='CustomCNNmini':
+            model = CustomCNNmini()
+        else:
+            print("没找到模型{}".format(opt.model))
     else:
         model = SupConResNet(name=opt.model)
     criterion = SupConLoss(temperature=opt.temp)

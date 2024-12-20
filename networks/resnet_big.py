@@ -225,6 +225,41 @@ class CustomCNN(nn.Module):
         feat = F.normalize(feat, dim=1)  # 正则化输出特征
         return feat
 
+class CustomCNNmini(nn.Module):
+    """CNN backbone + projection head"""
+    def __init__(self, feat_dim=64):
+        super(CustomCNNmini, self).__init__()
+        
+        # 定义编码器部分
+        self.encoder = nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(in_channels=128, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=2, stride=2)
+        )
+        
+        # 计算展平后的维度（假设输入图像大小为500x500）
+        self.flatten_dim = 32 * 125 * 125  # 每次池化尺寸减半
+
+        # 定义头部部分
+        self.head = nn.Sequential(
+            nn.Linear(self.flatten_dim, 128),
+            nn.ReLU(inplace=True),
+            nn.Linear(128, feat_dim),
+        )
+
+    def forward(self, x):
+        # 编码器部分
+        x = self.encoder(x)
+        # print(f"Shape after encoder: {x.shape}")  # 添加这一行
+        x = x.view(x.size(0), -1)  # 展平操作
+        
+        # 头部部分
+        feat = self.head(x)
+        feat = F.normalize(feat, dim=1)  # 正则化输出特征
+        return feat
 
 class SupCEResNet(nn.Module):
     """encoder + classifier"""
