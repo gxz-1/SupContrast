@@ -1,6 +1,0 @@
-sp------------------------------------------------
-Class: 3pro, Images in 'a': 6400, Images in 'b': 6400
-Class: 4pro, Images in 'a': 8000, Images in 'b': 7840
-Class: Dji, Images in 'a': 6400, Images in 'b': 6400
-Class: dao, Images in 'a': 1600, Images in 'b': 640
-Class: ha, Images in 'a': 1600, Images in 'b': 1600

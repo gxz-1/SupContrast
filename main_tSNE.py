@@ -5,7 +5,7 @@ import torch.backends.cudnn as cudnn
 from torchvision import transforms
 from torch.utils.data import Subset
 from rf_dataset import SPDataset  # 确保该模块在您的工作目录中
-from networks.resnet_big import CustomCNN  # 确保该模块在您的工作目录中
+from networks.resnet_big import CustomCNN, CustomCNNmini  # 确保该模块在您的工作目录中
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,7 +38,8 @@ def parse_option():
                         help='Number of iterations for t-SNE')
     parser.add_argument('--save_dir', type=str, default='save/tSNE',
                         help='Directory to save the t-SNE plots')
-
+    parser.add_argument('--feature_type', type=str, default='all',help='获取encode部分或者整个模型all的特征')
+    parser.add_argument('--model', type=str, default='CustomCNNmini',help='选择CNN模型')
     args = parser.parse_args()
     return args
 
@@ -69,7 +70,12 @@ def set_loader(opt, subset_indices=None):
 
 def set_model(opt, device):
     # 初始化模型
-    model = CustomCNN()
+    if opt.model == 'CustomCNNmini':
+        model = CustomCNNmini()    
+    elif opt.model == 'CustomCNN':
+        model = CustomCNN()
+    else:
+        print("没找到模型{}".format(opt.model))
 
     # 加载预训练模型权重
     ckpt = torch.load(opt.ckpt, map_location='cpu')
@@ -117,19 +123,29 @@ def set_model(opt, device):
     model.eval()
     return model
 
-def extract_features_subset(val_loader, model, device):
+def extract_features_subset(val_loader, model, device, feature_type):
     all_features = []
     all_labels = []
 
     with torch.no_grad():
         for images, labels in val_loader:
             images = images.to(device)
-            features = model.forward(images) 
+
+            if feature_type == 'all':
+                features = model.forward(images) 
+            elif feature_type == 'encode':
+                # 获取经过编码器处理后的特征，并展平
+                features = model.encoder(images) 
+                features = features.view(features.size(0), -1)
+            else:
+                print("参数feature_type没找到：{}".format(feature_type))
 
             features = features.cpu().numpy()
             labels = labels.cpu().numpy()
+            # 可选：打印特征某一列值，检查结果
             print(features[:,23])
             print(labels)
+
             all_features.append(features)
             all_labels.append(labels)
 
@@ -183,13 +199,14 @@ def visualize_tsne(features, labels, num_classes, save_dir, batch_num):
 
     # 绘制散点图
     plt.figure(figsize=(10, 8))
+    class_name=["3pro","4pro","Dji","dao","ha"]
     for class_idx in range(num_classes):
         idxs = labels == class_idx
         plt.scatter(
             features_2d[idxs, 0],
             features_2d[idxs, 1],
             c=[colors[class_idx]],
-            label=f"Class {class_idx}",
+            label=class_name[class_idx],
             alpha=0.6,
             s=10
         )
@@ -254,7 +271,7 @@ def main():
         subset_loader = set_loader(opt, subset_indices=selected_indices)
 
         # 提取特征和标签
-        features, labels = extract_features_subset(subset_loader, model, device)
+        features, labels = extract_features_subset(subset_loader, model, device, opt.feature_type)
         print(f"已选择 {features.shape[0]} 个样本进行t-SNE可视化。")
 
         # 确定类别数量

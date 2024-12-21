@@ -13,7 +13,7 @@ from rf_dataset import SPDataset
 from util import AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer
-from networks.resnet_big import CustomCNN, SupConResNet, LinearClassifier, sp_LinearClassifier
+from networks.resnet_big import CustomCNN, CustomCNNmini, SupConResNet, LinearClassifier, sp_LinearClassifier
 from torchvision import transforms, datasets
 # try:
 #     import apex
@@ -104,7 +104,7 @@ def parse_option():
     elif opt.dataset == 'rf':
         opt.n_cls = 4
     elif opt.dataset == 'sp':
-        opt.n_cls = 4
+        opt.n_cls = 5
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -188,7 +188,12 @@ def set_loader(opt):
 def set_model(opt):
     #预训练的encode的模型
     if opt.dataset == 'sp':
-        model = CustomCNN()
+        if opt.model=='CustomCNN':
+            model = CustomCNN()
+        elif opt.model=='CustomCNNmini':
+            model = CustomCNNmini()
+        else:
+            print("没找到模型{}".format(opt.model))
     else:
         model = SupConResNet(name=opt.model)
     criterion = torch.nn.CrossEntropyLoss()
