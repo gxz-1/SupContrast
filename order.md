@@ -66,7 +66,7 @@ nohup python main_supcon.py --batch_size 16 \
 - 新增不同的数据增强策略
 - 模型dropout（0.3-0.5之间）
 - 优化器L2正则化参数的大小weight_decay（在 1e-4 到 1e-2 之间）
-- 数据正则化
+- 数据标准化
 ```bash
 nohup python main_supcon_Generalization.py --batch_size 16 \
   --model CustomCNNminidrop \
@@ -76,8 +76,30 @@ nohup python main_supcon_Generalization.py --batch_size 16 \
   --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
   --dataset sp --epochs 50 \
   --save_freq 2 --weight_decay 1e-3 > runlog.txt 2>&1 &
-```
 
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNminidrop \
+  --learning_rate 0.1 \ 
+  --temp 0.2  --cosine \                                                         
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \     
+  --dataset sp --epochs 50 \                                                                                                    
+  --save_freq 2 --weight_decay 1e-4 \
+  > runlog.txt 2>&1 &  
+```
+t-SNE成一个环形，非常奇怪，同时loss在ep50时仍然有下降的趋势
+
+6.取消数据标准化、调整亮度和对比度的数据增强策略、取消dropout的策略，增大轮次
+与4相比相当于只修改了：中心裁剪->随机缩放裁剪
+```bash
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNmini \
+  --learning_rate 0.01 \
+  --temp 0.2  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp --epochs 150 \
+  --save_freq 2 --weight_decay 1e-4 \
+  > runlog.txt 2>&1 &  
+```
 ### train main_linear.py
 
 ```bash
@@ -133,10 +155,21 @@ python main_tSNE.py \
     --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
     --batch_size 32 \
     --num_workers 8
+
+python main_tSNE.py \
+    --model CustomCNNminidrop \
+    --feature_type all \
+    --ckpt save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNminidrop_lr_0.1_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_18.pth \
+    --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+    --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
+    --batch_size 32 \
+    --num_workers 8
 ```
+18 28 50
 
+save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNminidrop_lr_0.1_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_18.pth
 
-
+### 推理
 python inference.py \
 --encoder_path save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_36.pth \
 --classifier_path save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/best_classifier_97.16.pth \

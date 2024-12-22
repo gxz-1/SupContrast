@@ -5,7 +5,7 @@ import torch.backends.cudnn as cudnn
 from torchvision import transforms
 from torch.utils.data import Subset
 from rf_dataset import SPDataset  # 确保该模块在您的工作目录中
-from networks.resnet_big import CustomCNN, CustomCNNmini  # 确保该模块在您的工作目录中
+from networks.resnet_big import CustomCNN, CustomCNNmini, CustomCNNminidrop  # 确保该模块在您的工作目录中
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,6 +74,8 @@ def set_model(opt, device):
         model = CustomCNNmini()    
     elif opt.model == 'CustomCNN':
         model = CustomCNN()
+    elif opt.model == 'CustomCNNminidrop':
+        model = CustomCNNminidrop()
     else:
         print("没找到模型{}".format(opt.model))
 

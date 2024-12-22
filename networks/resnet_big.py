@@ -263,7 +263,7 @@ class CustomCNNmini(nn.Module):
 
 class CustomCNNminidrop(nn.Module):
     """CNN backbone + projection head"""
-    def __init__(self, feat_dim=64, dropout_p=0.4):
+    def __init__(self, feat_dim=64, dropout_p=0.3):
         super(CustomCNNminidrop, self).__init__()
         
         # 定义编码器部分
