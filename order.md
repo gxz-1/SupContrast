@@ -61,6 +61,23 @@ nohup python main_supcon.py --batch_size 16 \
 ```
 结果来看：loss更低，且拟合速度更快，因此temp=0.2更佳
 
+
+5.模型泛化性不足
+- 新增不同的数据增强策略
+- 模型dropout（0.3-0.5之间）
+- 优化器L2正则化参数的大小weight_decay（在 1e-4 到 1e-2 之间）
+- 数据正则化
+```bash
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNminidrop \
+  --learning_rate 0.01 \
+  --temp 0.2 \
+  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp --epochs 50 \
+  --save_freq 2 --weight_decay 1e-3 > runlog.txt 2>&1 &
+```
+
 ### train main_linear.py
 
 ```bash
