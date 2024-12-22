@@ -11,14 +11,15 @@ from networks.resnet_big import CustomCNN, CustomCNNmini, sp_LinearClassifier
 # 设置推理相关参数
 class InferenceOptions:
     def __init__(self):
-        # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test'  # 请替换为SP验证数据的路径
-        self.val_data_folder = '/disk/datasets/rf_data/newspectrum/dataset/test/哈博森/5.8G,10M,外场,D5900m,H260m/'  # 请替换为SP验证数据的路径
+        self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test'  # 请替换为SP验证数据的路径
+        # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/dataset/test/哈博森/5.8G,10M,外场,D5900m,H260m/'  # 请替换为SP验证数据的路径
         # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test/4pro/5.8G,40M,外场,D1900m,H500m/'
-        self.encode_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_30.pth'  # encode模型的路径
-        self.classifier_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_96.920.pth'  # classifier模型的路径
+        # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/val'
+        self.encode_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_36.pth'  # encode模型的路径
+        self.classifier_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/best_classifier_97.16.pth'  # classifier模型的路径
         self.batch_size = 32
         self.num_workers = 8
-        self.model = 'CustomCNNmini'  # 这里设置为'CustomCNN'，如果使用其他模型请修改
+        self.model = 'CustomCNNmini'  
         # self.mode = 'predict'
         self.mode = 'data'
 
@@ -59,31 +60,30 @@ def set_model_for_inference(opt):
 
     return model, classifier
 
-# 3. 执行推理
 def inference(val_loader, model, classifier):
-    model.eval()  # 设置为评估模式
+    model.eval()        # 设置为评估模式
     classifier.eval()  # 设置为评估模式
-    
+
     all_preds = []
     all_labels = []
-    
+
     with torch.no_grad():
-        for images, labels in val_loader:
+        for batch_idx, (images, labels) in enumerate(val_loader):
             images = images.cuda(non_blocking=True)
             labels = labels.cuda(non_blocking=True)
             # 提取特征（encode）
             features = model(images)  # 使用整个模型提取特征
             # 分类器进行预测
             outputs = classifier(features)  # 分类器做最终预测
-            
+
             _, preds = torch.max(outputs, 1)  # 获取最大概率的类别
-            all_preds.append(preds.cpu().numpy())  # 将预测结果转换为cpu上的numpy数组
-            all_labels.append(labels.cpu().numpy())  # 将标签转换为cpu上的numpy数组
+            all_preds.append(preds.cpu().numpy())  # 将预测结果转换为 CPU 上的 numpy 数组
+            all_labels.append(labels.cpu().numpy())  # 将标签转换为 CPU 上的 numpy 数组
 
     # 拼接所有的预测值和标签
     all_preds = np.concatenate(all_preds, axis=0)
     all_labels = np.concatenate(all_labels, axis=0)
-    
+
     # 计算准确率
     accuracy = (all_preds == all_labels).mean()
     print(f'Inference Accuracy: {accuracy * 100:.2f}%')
@@ -104,10 +104,21 @@ def inference(val_loader, model, classifier):
     plt.xlabel('Predicted')
     plt.ylabel('True')
     plt.title('Confusion Matrix')
-    plt.show()
 
+    # 定义保存路径，您可以根据需要修改文件名
+    save_path = os.path.join('figures', 'confusion_matrix.png')
 
-import torch
+    # 保存混淆矩阵图像
+    plt.savefig(save_path)
+    plt.close()  # 关闭图像以释放内存
+
+    print(f'Confusion matrix saved to {save_path}')
+
+    # （可选）保存混淆矩阵数据为 CSV 文件
+    # csv_save_path = os.path.join(figures_dir, 'confusion_matrix.csv')
+    # np.savetxt(csv_save_path, cm, delimiter=",", fmt='%d')
+    # print(f'Confusion matrix data saved to {csv_save_path}')
+
 
 def predict(val_loader, model, classifier):
     model.eval()       # 设置为评估模式
@@ -155,9 +166,9 @@ def predict(val_loader, model, classifier):
 opt = InferenceOptions()
 # 数据预处理
 val_transform = transforms.Compose([
-    transforms.RandomCrop((500, 500)),
+    # transforms.RandomCrop((500, 500)),
     # transforms.RandomResizedCrop((500, 500), scale=(0.9, 1.1)),  # 随机缩放裁剪，裁剪比例可调
-    # transforms.CenterCrop((500, 500)),
+    transforms.CenterCrop((500, 500)),
     # transforms.Resize((500,500)),
     transforms.ToTensor(),
 ])

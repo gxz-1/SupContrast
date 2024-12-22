@@ -394,7 +394,7 @@ def main():
         loss, val_acc = validate(val_loader, model, classifier, criterion, opt)
         if val_acc > best_acc:
             best_acc = val_acc
-            save_path = os.path.join(save_dir, 'best_classifier_{}.pth'.format(best_acc.item()))
+            save_path = os.path.join(save_dir, 'best_classifier.pth')
             torch.save(classifier.state_dict(), save_path)
             print(f'epoch {epoch}: Best model saved to {save_path}')
 

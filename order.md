@@ -92,6 +92,11 @@ nohup python main_linear.py --batch_size 32 \
 2.测试temp=0.3的结果
 [ckpt_epoch_30.pth](save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_30.pth)
 结果：ep30：96.7065  ep36:97.16
+
+3.训练的模型在推理时，泛化性不佳，采用temp=0.2没有完成拟合的模型尝试，取ep=22 ep=24
+结果：ep22:95.83  ep24:95.96
+
+
 ### train_tSNE.py
 ```bash
 python main_tSNE.py \
@@ -112,6 +117,7 @@ python main_tSNE.py \
     --batch_size 32 \
     --num_workers 8
 ```
+
 
 
 python inference.py \
