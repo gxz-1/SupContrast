@@ -77,16 +77,21 @@ python main_linear.py --batch_size 2 \
 1.以一阶段训练的这个模型进行二阶段训练
 [ckpt_epoch_40.pth](save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_40.pth)
 ```bash
-python main_linear.py --batch_size 64 \
-  --test_batch_size 8 \
-  --learning_rate 4 \
-  --ckpt save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_40.pth \
+nohup python main_linear.py --batch_size 32 \
+  --model CustomCNNmini \
+  --test_batch_size 64 \
+  --learning_rate 0.1 \
+  --ckpt save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_30.pth \
   --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
   --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
   --dataset sp \
-  --epochs 20
+  --epochs 10 > runlog2.txt 2>&1 &
 ```
+结果：ep40:96.894 ep30:96.920
 
+2.测试temp=0.3的结果
+[ckpt_epoch_30.pth](save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_30.pth)
+结果：ep30：96.7065  ep36:97.16
 ### train_tSNE.py
 ```bash
 python main_tSNE.py \
@@ -109,3 +114,8 @@ python main_tSNE.py \
 ```
 
 
+python inference.py \
+--encoder_path save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_36.pth \
+--classifier_path save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/best_classifier_97.16.pth \
+--image_dir /disk/datasets/rf_data/newspectrum/SelectAB/test \
+--mode data

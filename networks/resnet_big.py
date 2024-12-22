@@ -285,27 +285,9 @@ class LinearClassifier(nn.Module):
 
 class sp_LinearClassifier(nn.Module):
     """Linear classifier"""
-    def __init__(self, num_classes=4):
+    def __init__(self, num_classes=5,feat_dim=64):
         super(sp_LinearClassifier, self).__init__()
-
-        # 计算展平后的维度（假设输入图像大小为500x500）
-        self.flatten_dim = 128 * 125 * 125  # 每次池化尺寸减半
-        feat_dim = 64
-        # 定义头部部分
-        self.head = nn.Sequential(
-            nn.Linear(self.flatten_dim, 128),
-            nn.ReLU(inplace=True),
-            nn.Linear(128, 64),
-            nn.ReLU(inplace=True),
-            nn.Linear(64, feat_dim)
-        )
-        # 分类器
         self.fc = nn.Linear(feat_dim, num_classes) 
 
     def forward(self, features):
-        # print(features.shape)
-        features = features.view(features.size(0), -1)  # 展平操作
-        # print(features.shape)
-        feat = self.head(features)# 头部部分
-        feat = F.normalize(feat, dim=1)  # 正则化输出特征
-        return self.fc(feat)
+        return self.fc(features)

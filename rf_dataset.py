@@ -33,6 +33,7 @@ class SPDataset(Dataset):
             class_path = os.path.join(data_dir, class_name)
             if os.path.isdir(class_path):
                 self.class_to_idx[class_name] = idx
+            print("name:{},index:{}".format(class_name,idx))
 
         if data_type == 'train':
             # 遍历所有类别文件夹并收集样本
@@ -109,3 +110,25 @@ class SPDataset(Dataset):
 
             # 返回图像和标签
             return image, label
+        
+
+class InferenceDataset(Dataset):
+    def __init__(self, data_dir, transform=None):
+        self.samples = []
+        self.transform = transform
+        for file in sorted(os.listdir(data_dir)):
+            file_path = os.path.join(data_dir, file)
+            if os.path.isfile(file_path) and file.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                self.samples.append((file_path, -1))  # -1 表示未知标签
+
+    def __len__(self):
+        return len(self.samples)
+
+    def __getitem__(self, idx):
+        img_path, label = self.samples[idx]
+        image = Image.open(img_path).convert('L')  # 转为灰度图
+
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label

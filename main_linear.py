@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import os
 import sys
 import argparse
 import time
@@ -51,7 +52,7 @@ def parse_option():
                         help='momentum')
 
     # model dataset
-    parser.add_argument('--model', type=str, default='resnet50')
+    parser.add_argument('--model', type=str, default='CustomCNN')
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100','rf','sp'], help='dataset')
 
@@ -249,12 +250,16 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
         warmup_learning_rate(opt, epoch, idx, len(train_loader), optimizer)
 
         # compute loss
+        # with torch.no_grad():
+            # features = model.encoder(images)
+        # output = classifier(features.detach())
+
         with torch.no_grad():
-            features = model.encoder(images)
-            # print(features.shape)
-        output = classifier(features.detach())
-        # print(output.shape)
+            features = model(images)  # 使用整个模型提取特征，不计算梯度
+        output = classifier(features)
+        
         loss = criterion(output, labels)
+        # print(output.shape)
 
         # update metric
         losses.update(loss.item(), bsz)
@@ -317,7 +322,9 @@ def validate(val_loader, model, classifier, criterion, opt):
             bsz = labels.shape[0]
 
             # forward
-            output = classifier(model.encoder(images))
+            # output = classifier(model.encoder(images))
+            features = model(images)
+            output = classifier(features)
             loss = criterion(output, labels)
 
             # update metric
@@ -358,6 +365,10 @@ def main():
     best_acc = 0
     opt = parse_option()
 
+    # 创建保存模型的目录（可选）
+    save_dir = 'save/SecondStage/sp_models'
+    os.makedirs(save_dir, exist_ok=True)
+
     # build data loader
     train_loader, val_loader = set_loader(opt)
 
@@ -383,6 +394,9 @@ def main():
         loss, val_acc = validate(val_loader, model, classifier, criterion, opt)
         if val_acc > best_acc:
             best_acc = val_acc
+            save_path = os.path.join(save_dir, 'best_classifier_{}.pth'.format(best_acc.item()))
+            torch.save(classifier.state_dict(), save_path)
+            print(f'epoch {epoch}: Best model saved to {save_path}')
 
     print('best accuracy: {:.2f}'.format(best_acc.item()))
 
