@@ -1,5 +1,6 @@
 ### train main_supcon.py
 conda:swin
+
 ```bash
 python main_supcon.py --batch_size 2 \
   --learning_rate 0.5 \
@@ -100,6 +101,41 @@ nohup python main_supcon_Generalization.py --batch_size 16 \
   --save_freq 2 --weight_decay 1e-4 \
   > runlog.txt 2>&1 &  
 ```
+拟合效果不错,ep150时loss未完全停止下降，后续考虑继续增加轮次
+泛化效果仍然不佳
+
+7.不使用随机缩放裁剪，使用随机裁剪，训练200轮（覆盖步骤6的模型）
+[text](save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine)
+```bash
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNmini \
+  --learning_rate 0.01 \
+  --temp 0.2  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp --epochs 200 \
+  --save_freq 2 --weight_decay 1e-4 \
+  > runlog.txt 2>&1 &  
+```
+
+8.增加数据标准化、修改饱和度亮度、水平翻转的策略,训练300轮
+```bash
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNmini \
+  --learning_rate 0.01 \
+  --temp 0.2  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp --epochs 300 \
+  --save_freq 2 --weight_decay 1e-4 \
+  > runlog.txt 2>&1 &  
+
+效果不好,全部预测为class1
+
+9.取消修改饱和度亮度、水平翻转，只增加数据标准化，覆盖步骤8
+[text](save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine)
+
+10.只加数据标准化无法拟合，在7的基础上加修改饱和度亮度+水平翻转,不标准化，覆盖步骤8
+```
+
 ### train main_linear.py
 
 ```bash
@@ -126,15 +162,40 @@ nohup python main_linear.py --batch_size 32 \
   --dataset sp \
   --epochs 10 > runlog2.txt 2>&1 &
 ```
-结果：ep40:96.894 ep30:96.920
+结果：ep40:96.894 ep30:96.920 ep22:95.83  ep24:95.96
 
 2.测试temp=0.3的结果
 [ckpt_epoch_30.pth](save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_30.pth)
 结果：ep30：96.7065  ep36:97.16
 
-3.训练的模型在推理时，泛化性不佳，采用temp=0.2没有完成拟合的模型尝试，取ep=22 ep=24
-结果：ep22:95.83  ep24:95.96
+3.训练的模型在推理时，泛化性不佳
 
+4.由一阶段步骤6的模型进行二阶段训练
+[ckpt_epoch_140.pth](save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_140.pth)
+由散点图看出分离界面非线性，新增MLP分类器
+```bash
+nohup python main_linear.py --batch_size 32 \
+  --model CustomCNNmini \
+  --test_batch_size 64 \
+  --learning_rate 0.1 \
+  --ckpt save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_140.pth \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
+  --dataset sp \
+  --epochs 10 > runlog2.txt 2>&1 &
+
+nohup python main_linear.py --batch_size 32 \
+  --model CustomCNNmini \
+  --classifier MLP \
+  --test_batch_size 64 \
+  --learning_rate 0.1 \
+  --ckpt save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_190.pth \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
+  --dataset sp \
+  --epochs 10 > runlog2.txt 2>&1 &
+```
+ep190:linear95.78 MLP95.78(保留)
 
 ### train_tSNE.py
 ```bash
@@ -164,10 +225,17 @@ python main_tSNE.py \
     --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
     --batch_size 32 \
     --num_workers 8
-```
-18 28 50
 
-save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNminidrop_lr_0.1_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_18.pth
+python main_tSNE.py \
+    --model CustomCNNmini \
+    --feature_type all \
+    --ckpt save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_140.pth \
+    --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+    --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
+    --batch_size 32 \
+    --num_workers 8
+```
+save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_170.pth
 
 ### 推理
 python inference.py \

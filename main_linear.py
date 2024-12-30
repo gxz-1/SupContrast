@@ -14,7 +14,7 @@ from rf_dataset import SPDataset
 from util import AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer
-from networks.resnet_big import CustomCNN, CustomCNNmini, SupConResNet, LinearClassifier, sp_LinearClassifier
+from networks.resnet_big import CustomCNN, CustomCNNmini, SupConResNet, LinearClassifier, sp_LinearClassifier, sp_MLPClassifier
 from torchvision import transforms, datasets
 # try:
 #     import apex
@@ -71,6 +71,7 @@ def parse_option():
     parser.add_argument('--mean', type=str, help='mean of dataset in path in form of str tuple')
     parser.add_argument('--std', type=str, help='std of dataset in path in form of str tuple')
 
+    parser.add_argument('--classifier',type=str, default='linear')
     opt = parser.parse_args()
 
 
@@ -200,7 +201,12 @@ def set_model(opt):
     criterion = torch.nn.CrossEntropyLoss()
     #设置分类的模型
     if opt.dataset == 'sp':
-        classifier = sp_LinearClassifier(num_classes=opt.n_cls)
+        if opt.classifier == 'linear':
+            classifier = sp_LinearClassifier(num_classes=opt.n_cls)
+        elif opt.classifier == 'MLP':
+            classifier = sp_MLPClassifier(num_classes=opt.n_cls)
+        else:
+            print("没找到分类器{}".format(opt.model))
     else:
         classifier = LinearClassifier(name=opt.model, num_classes=opt.n_cls)
     # print(opt.n_cls)

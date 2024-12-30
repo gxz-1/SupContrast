@@ -46,12 +46,14 @@ def parse_option():
 def set_loader(opt, subset_indices=None):
     # 数据预处理
     transform = transforms.Compose([
-        transforms.CenterCrop((500, 500)),
+        # transforms.CenterCrop((500, 500)),
+        transforms.RandomCrop((500, 500)),
         transforms.ToTensor()
     ])
 
     # 加载sp数据集
     dataset = SPDataset(data_dir=opt.val_data_folder, transform=transform, data_type='test')
+    # dataset = SPDataset(data_dir=opt.data_folder, transform=transform, data_type='test')
 
     # 如果提供了子集索引，则创建子集
     if subset_indices is not None:

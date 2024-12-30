@@ -328,3 +328,16 @@ class sp_LinearClassifier(nn.Module):
 
     def forward(self, features):
         return self.fc(features)
+
+class sp_MLPClassifier(nn.Module):
+    """MLP classifier"""
+    def __init__(self, num_classes=5,feat_dim=64):
+        super(sp_MLPClassifier, self).__init__()
+        self.fc0=nn.Linear(feat_dim, 32)
+        self.relu=nn.ReLU(inplace=True)
+        self.fc = nn.Linear(32, num_classes) 
+
+    def forward(self, features):
+        features = self.fc0(features)
+        features = self.relu(features)
+        return self.fc(features)

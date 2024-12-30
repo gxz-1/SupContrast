@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "main_linear.py", line 411, in <module>
+    main()
+  File "main_linear.py", line 379, in main
+    train_loader, val_loader = set_loader(opt)
+  File "main_linear.py", line 159, in set_loader
+    download=True)
+  File "/home/zcq/anaconda3/envs/swin/lib/python3.7/site-packages/torchvision/datasets/cifar.py", line 65, in __init__
+    self.download()
+  File "/home/zcq/anaconda3/envs/swin/lib/python3.7/site-packages/torchvision/datasets/cifar.py", line 140, in download
+    if self._check_integrity():
+  File "/home/zcq/anaconda3/envs/swin/lib/python3.7/site-packages/torchvision/datasets/cifar.py", line 134, in _check_integrity
+    fpath = os.path.join(root, self.base_folder, filename)
+  File "/home/zcq/anaconda3/envs/swin/lib/python3.7/posixpath.py", line 80, in join
+    a = os.fspath(a)
+TypeError: expected str, bytes or os.PathLike object, not NoneType
