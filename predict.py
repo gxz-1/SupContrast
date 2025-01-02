@@ -22,11 +22,15 @@ class InferenceOptions:
         # self.classifier_ckpt = 'save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_83.50.pth'  # classifier模型的路径
         # self.classifier_ckpt = 'save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_95.78.pth'
         
-        self.encode_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_300.pth'
-        self.classifier_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_33.79.pth'
+        # self.encode_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_300.pth'
+        # self.classifier_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_33.79.pth'
+        # self.classifier = 'MLP'       
+        
+        self.encode_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_170.pth'
+        self.classifier_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_MLP95.35.pth'
         self.classifier = 'MLP'
 
-        self.batch_size = 32
+        self.batch_size = 2
         self.num_workers = 8
         self.model = 'CustomCNNmini'  
         
@@ -72,7 +76,7 @@ def set_model_for_inference(opt):
     if torch.cuda.is_available():
         model = model.cuda()
         classifier = classifier.cuda()
-        model = torch.nn.DataParallel(model)  # 使用多GPU时
+        model.encoder = torch.nn.DataParallel(model.encoder)
     else:
         raise NotImplementedError('This code requires GPU')
 
@@ -90,7 +94,7 @@ def inference(val_loader, model, classifier):
             images = images.cuda(non_blocking=True)
             labels = labels.cuda(non_blocking=True)
             # 提取特征（encode）
-            features = model(images)  # 使用整个模型提取特征
+            features = model.encoder(images)
             # 分类器进行预测
             outputs = classifier(features)  # 分类器做最终预测
 

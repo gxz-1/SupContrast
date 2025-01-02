@@ -331,13 +331,24 @@ class sp_LinearClassifier(nn.Module):
 
 class sp_MLPClassifier(nn.Module):
     """MLP classifier"""
-    def __init__(self, num_classes=5,feat_dim=64):
+    def __init__(self, num_classes=5):
         super(sp_MLPClassifier, self).__init__()
-        self.fc0=nn.Linear(feat_dim, 32)
-        self.relu=nn.ReLU(inplace=True)
-        self.fc = nn.Linear(32, num_classes) 
+        # 计算展平后的维度（假设输入图像大小为500x500）
+        self.flatten_dim = 32 * 125 * 125  # 每次池化尺寸减半
+
+        # 定义头部部分
+        self.fc0 = nn.Linear(self.flatten_dim, 128)
+        self.relu0 = nn.ReLU(inplace=True)
+        self.fc1 = nn.Linear(128, 64)
+        self.relu1 = nn.ReLU(inplace=True)       
+        self.fc2 = nn.Linear(64,num_classes)
 
     def forward(self, features):
+        features = features.view(features.size(0), -1)
         features = self.fc0(features)
-        features = self.relu(features)
-        return self.fc(features)
+        features = self.relu0(features)
+        features = self.fc1(features)
+        features = self.relu1(features)
+        features = self.fc2(features)
+        features = F.normalize(features, dim=1)  # 正则化输出特征
+        return features

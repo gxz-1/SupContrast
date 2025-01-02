@@ -127,15 +127,28 @@ nohup python main_supcon_Generalization.py --batch_size 16 \
   --dataset sp --epochs 300 \
   --save_freq 2 --weight_decay 1e-4 \
   > runlog.txt 2>&1 &  
-
+```
 效果不好,全部预测为class1
 
 9.取消修改饱和度亮度、水平翻转，只增加数据标准化，覆盖步骤8
 [text](save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine)
 
 10.只加数据标准化无法拟合，在7的基础上加修改饱和度亮度+水平翻转,不标准化，覆盖步骤8
-```
+效果很好，说明问题主要由标准化导致
+总结目前采取的数据增强策略：随机裁剪、随机调整亮度和对比度、随机水平翻转
 
+
+11.增强CNN model的drop=0.3 学习率=0.05
+```bash
+nohup python main_supcon_Generalization.py --batch_size 16 \
+  --model CustomCNNminidrop \
+  --learning_rate 0.05 \
+  --temp 0.2  --cosine \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --dataset sp --epochs 400 \
+  --save_freq 5 --weight_decay 1e-4 \
+  > runlog.txt 2>&1 &  
+```
 ### train main_linear.py
 
 ```bash
@@ -197,6 +210,24 @@ nohup python main_linear.py --batch_size 32 \
 ```
 ep190:linear95.78 MLP95.78(保留)
 
+5.测试步骤10产生的模型
+[generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine](save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine)
+```bash
+nohup python main_linear.py --batch_size 32 \
+  --model CustomCNNmini \
+  --classifier MLP \
+  --test_batch_size 64 \
+  --learning_rate 0.5 \
+  --ckpt save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_300.pth \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/train \
+  --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/test \
+  --dataset sp \
+  --epochs 20 > runlog2.txt 2>&1 &
+```
+|轮次|linear|MLP|
+|---|---|---|
+|ep300| linear 96.11 | MLP 96.07|
+|ep170| linear 93.56 | MLP 93.57|
 ### train_tSNE.py
 ```bash
 python main_tSNE.py \
@@ -243,3 +274,16 @@ python inference.py \
 --classifier_path save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/best_classifier_97.16.pth \
 --image_dir /disk/datasets/rf_data/newspectrum/SelectAB/test \
 --mode data
+
+
+
+nohup python main_linear.py --batch_size 2 \
+  --model CustomCNNmini \
+  --classifier MLP \
+  --test_batch_size 64 \
+  --learning_rate 0.1 \
+  --ckpt save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_170.pth \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/few/train5shot \
+  --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/few/val \
+  --dataset sp \
+  --epochs 30 > runlog2.txt 2>&1 &

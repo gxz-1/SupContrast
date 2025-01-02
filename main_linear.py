@@ -256,13 +256,13 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
         warmup_learning_rate(opt, epoch, idx, len(train_loader), optimizer)
 
         # compute loss
-        # with torch.no_grad():
-            # features = model.encoder(images)
-        # output = classifier(features.detach())
-
         with torch.no_grad():
-            features = model(images)  # 使用整个模型提取特征，不计算梯度
-        output = classifier(features)
+            features = model.encoder(images)
+        output = classifier(features.detach())
+
+        # with torch.no_grad():
+        #     features = model(images)  # 使用整个模型提取特征，不计算梯度
+        # output = classifier(features)
         
         loss = criterion(output, labels)
         # print(output.shape)
@@ -328,9 +328,9 @@ def validate(val_loader, model, classifier, criterion, opt):
             bsz = labels.shape[0]
 
             # forward
-            # output = classifier(model.encoder(images))
-            features = model(images)
-            output = classifier(features)
+            output = classifier(model.encoder(images))
+            # features = model(images)
+            # output = classifier(features)
             loss = criterion(output, labels)
 
             # update metric
