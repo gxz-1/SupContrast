@@ -287,3 +287,15 @@ nohup python main_linear.py --batch_size 2 \
   --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/few/val \
   --dataset sp \
   --epochs 30 > runlog2.txt 2>&1 &
+
+  
+nohup python main_linear.py --batch_size 32 \
+  --model CustomCNNmini \
+  --classifier MLP \
+  --test_batch_size 64 \
+  --learning_rate 0.1 \
+  --ckpt save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_170.pth \
+  --data_folder /disk/datasets/rf_data/newspectrum/SelectAB/val \
+  --val_data_folder /disk/datasets/rf_data/newspectrum/SelectAB/val \
+  --dataset sp \
+  --epochs 30 > runlog2.txt 2>&1 &

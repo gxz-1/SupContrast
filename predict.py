@@ -11,11 +11,11 @@ from networks.resnet_big import CustomCNN, CustomCNNmini, sp_LinearClassifier, s
 # 设置推理相关参数
 class InferenceOptions:
     def __init__(self):
-        self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test'  # 请替换为SP验证数据的路径
+        # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test'  # 请替换为SP验证数据的路径
         # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/dataset/test/哈博森/5.8G,10M,外场,D5900m,H260m/'  # 请替换为SP验证数据的路径
         # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/test/4pro/5.8G,40M,外场,D1900m,H500m/'
         # self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/val'
-
+        self.val_data_folder = '/disk/datasets/rf_data/newspectrum/SelectAB/few/val'
         # self.encode_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/ckpt_epoch_36.pth'  # encode模型的路径
         # self.encode_ckpt = 'save/SupCon/sp_models/generalizetionSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_190.pth'  # encode模型的路径
         # self.classifier_ckpt = 'save/SupCon/sp_models/SupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.3_trial_0_cosine/best_classifier_97.16.pth'  # classifier模型的路径
@@ -27,16 +27,16 @@ class InferenceOptions:
         # self.classifier = 'MLP'       
         
         self.encode_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/ckpt_epoch_170.pth'
-        self.classifier_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_MLP95.35.pth'
+        # self.classifier_ckpt = 'save/SupCon/sp_models/generalizetion_tranSupCon_sp_CustomCNNmini_lr_0.01_decay_0.0001_bsz_16_temp_0.2_trial_0_cosine/best_classifier_MLP95.35.pth'
         self.classifier = 'MLP'
 
-        self.batch_size = 2
+        self.batch_size = 32
         self.num_workers = 8
         self.model = 'CustomCNNmini'  
         
         # self.classifier = 'linear'
         # self.classifier = 'MLP'
-
+        self.classifier_ckpt='save/SecondStage/sp_models/best_classifier.pth'
         # self.mode = 'predict'
         self.mode = 'data'
 
