@@ -16,7 +16,7 @@ from util import TwoCropTransform, AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model
 from networks.resnet_big import CustomCNN, CustomCNNmini, CustomCNNminidrop, SupConResNet
-from losses import SupConLoss
+from losses import SupConLoss,ContrastiveLoss
 
 # try:
 #     import apex
@@ -62,7 +62,7 @@ def parse_option():
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
-                        choices=['SupCon', 'SimCLR'], help='choose method')
+                        choices=['SupCon', 'SimCLR','ContrastiveLoss'], help='choose method')
 
     # temperature
     parser.add_argument('--temp', type=float, default=0.07,
@@ -207,7 +207,10 @@ def set_model(opt):
             print("没找到模型{}".format(opt.model))
     else:
         model = SupConResNet(name=opt.model)
-    criterion = SupConLoss(temperature=opt.temp)
+    if opt.method == 'ContrastiveLoss':
+        criterion = ContrastiveLoss(temperature=opt.temp)
+    else:
+        criterion = SupConLoss(temperature=opt.temp)
 
     # enable synchronized Batch Normalization
     if opt.syncBN:
@@ -251,6 +254,8 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
         if opt.method == 'SupCon':
             loss = criterion(features, labels)
         elif opt.method == 'SimCLR':
+            loss = criterion(features)
+        elif opt.method == 'ContrastiveLoss':
             loss = criterion(features)
         else:
             raise ValueError('contrastive method not supported: {}'.

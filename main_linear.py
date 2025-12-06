@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import csv
 import os
 import sys
 import argparse
@@ -28,7 +29,7 @@ def parse_option():
 
     parser.add_argument('--print_freq', type=int, default=10,
                         help='print frequency')
-    parser.add_argument('--save_freq', type=int, default=50,
+    parser.add_argument('--save_freq', type=int, default=5,
                         help='save frequency')
     parser.add_argument('--batch_size', type=int, default=256,
                         help='batch_size')
@@ -262,7 +263,7 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
 
         # with torch.no_grad():
         #     features = model(images)  # 使用整个模型提取特征，不计算梯度
-        # output = classifier(features)
+        # output = classifier(features.detach())
         
         loss = criterion(output, labels)
         # print(output.shape)
@@ -370,41 +371,48 @@ def validate(val_loader, model, classifier, criterion, opt):
 def main():
     best_acc = 0
     opt = parse_option()
+    with open('validation_results.csv', 'w', newline='') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['epoch', 'val_loss', 'val_acc'])  # 写入表头
 
-    # 创建保存模型的目录（可选）
-    save_dir = 'save/SecondStage/sp_models'
-    os.makedirs(save_dir, exist_ok=True)
+        # 创建保存模型的目录（可选）
+        save_dir = 'save/SecondStage/sp_models'
+        os.makedirs(save_dir, exist_ok=True)
 
-    # build data loader
-    train_loader, val_loader = set_loader(opt)
+        # build data loader
+        train_loader, val_loader = set_loader(opt)
 
-    # build model and criterion
-    model, classifier, criterion = set_model(opt)
+        # build model and criterion
+        model, classifier, criterion = set_model(opt)
 
-    # build optimizer
-    optimizer = set_optimizer(opt, classifier)
+        # build optimizer
+        optimizer = set_optimizer(opt, classifier)
 
-    # training routine
-    for epoch in range(1, opt.epochs + 1):
-        adjust_learning_rate(opt, optimizer, epoch)
+        # training routine
+        for epoch in range(1, opt.epochs + 1):
+            adjust_learning_rate(opt, optimizer, epoch)
 
-        # train for one epoch
-        time1 = time.time()
-        loss, acc = train(train_loader, model, classifier, criterion,
-                          optimizer, epoch, opt)
-        time2 = time.time()
-        print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}'.format(
-            epoch, time2 - time1, acc.item()))
+            # train for one epoch
+            time1 = time.time()
+            loss, acc = train(train_loader, model, classifier, criterion,
+                              optimizer, epoch, opt)
+            time2 = time.time()
+            print('Train epoch {}, total time {:.2f}, accuracy:{:.2f}'.format(
+                epoch, time2 - time1, acc.item()))
 
-        # eval for one epoch
-        loss, val_acc = validate(val_loader, model, classifier, criterion, opt)
-        if val_acc > best_acc:
-            best_acc = val_acc
-            save_path = os.path.join(save_dir, 'best_classifier.pth')
-            torch.save(classifier.state_dict(), save_path)
-            print(f'epoch {epoch}: Best model saved to {save_path}')
+            # eval for one epoch
+            loss, val_acc = validate(val_loader, model, classifier, criterion, opt)
+            # 写入验证结果到 CSV 文件
+            csv_writer.writerow([epoch, loss, val_acc])
 
-    print('best accuracy: {:.2f}'.format(best_acc.item()))
+            if val_acc > best_acc:
+                best_acc = val_acc
+                save_path = os.path.join(save_dir, 'best_classifier.pth')
+                torch.save(classifier.state_dict(), save_path)
+                print(f'epoch {epoch}: Best model saved to {save_path}')
+
+        print('best accuracy: {:.2f}'.format(best_acc.item()))
+        csv_writer.writerow(['best_acc', best_acc, epoch])  # 写入最佳准确率
 
 
 if __name__ == '__main__':

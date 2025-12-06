@@ -6,7 +6,66 @@ from __future__ import print_function
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
+class ContrastiveLoss(nn.Module):
+    """
+    无label的对比损失类（仿照SimCLR损失的实现逻辑）
+    适配场景：输入为(x1, x2)，其中x1和x2是同一样本的两个增强视图（正样本对）
+    无需手动传入label，自动构建正/负样本对
+    """
+    def __init__(self, margin=2.0, temperature=0.1):
+        super().__init__()
+        self.margin = margin  # 对比损失的边际值
+        self.temperature = temperature  # 可选：缩放距离，提升区分度
+    
+    def forward(self, output1, output2):
+        """
+        Args:
+            output1: 孪生网络分支1输出，shape [N, D]（N=批次大小，D=特征维度）
+            output2: 孪生网络分支2输出，shape [N, D]
+        Returns:
+            批次平均对比损失
+        """
+        # ========== 步骤1：拼接特征，构建批次内所有样本对 ==========
+        # 拼接output1和output2，形成 [2N, D]（和SimCLR的2N个增强视图一致）
+        z = torch.cat([output1, output2], dim=0)  # [2N, D]
+        N = output1.shape[0]
+        
+        # ========== 步骤2：计算所有样本对的欧式距离 ==========
+        # 计算两两欧式距离：shape [2N, 2N]
+        # 方法：distance(i,j) = sqrt(||z[i] - z[j]||²)
+        z_sq = torch.sum(z **2, dim=1, keepdim=True)  # [2N, 1]
+        distance_matrix = torch.sqrt(
+            z_sq + z_sq.t() - 2 * torch.matmul(z, z.t()) + 1e-8  # 加小值避免根号内为负
+        ) / self.temperature  # 温度缩放，提升区分度
+        
+        # ========== 步骤3：构建正/负样本掩码（无需手动label） ==========
+        # 自身掩码：屏蔽样本自身的距离（distance(i,i)=0）
+        mask_self = torch.eye(2*N, device=z.device, dtype=torch.bool)
+        # 正样本掩码：(0,N), (1,N+1), ..., (N-1,2N-1) 和 (N,0), (N+1,1), ..., (2N-1,N-1)
+        mask_pos = torch.zeros_like(mask_self)
+        mask_pos[:N, N:] = torch.eye(N, device=z.device, dtype=torch.bool)
+        mask_pos[N:, :N] = torch.eye(N, device=z.device, dtype=torch.bool)
+        # 负样本掩码：非自身、非正样本的所有样本对
+        mask_neg = ~(mask_self | mask_pos)
+        
+        # ========== 步骤4：计算对比损失 ==========
+        # 提取正样本对的距离
+        pos_dist = distance_matrix[mask_pos].view(-1, 1)  # [2N, 1]
+        # 提取负样本对的距离（每个正样本对匹配所有负样本对）
+        neg_dist = distance_matrix[mask_neg].view(2*N, -1)  # [2N, 2N-2]
+        
+        # 经典对比损失公式：
+        # 正样本对损失：(1-label) * distance² → label=0，即 pos_dist²
+        # 负样本对损失：label * max(margin - distance, 0)² → label=1，即 max(margin - neg_dist, 0)²
+        pos_loss = torch.mean(torch.pow(pos_dist, 2))  # 正样本对：最小化距离
+        neg_loss = torch.mean(torch.pow(torch.clamp(self.margin - neg_dist, min=0.0), 2))  # 负样本对：距离≥margin
+        
+        # 总损失：正样本损失 + 负样本损失（平均）
+        total_loss = (pos_loss + neg_loss) / 2
+        
+        return total_loss
 
 class SupConLoss(nn.Module):
     """Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.

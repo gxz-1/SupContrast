@@ -228,7 +228,7 @@ nohup python main_linear.py --batch_size 32 \
 |---|---|---|
 |ep300| linear 96.11 | MLP 96.07|
 |ep170| linear 93.56 | MLP 93.57|
-### train_tSNE.py
+### main_tSNE.py
 ```bash
 python main_tSNE.py \
     --model CustomCNNmini \
