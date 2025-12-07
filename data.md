@@ -37,8 +37,14 @@ nohup python new_main_supcon_Generalization.py --batch_size 16 \
   > runlog.txt 2>&1 &  
 ```
 2. 训练的loss变化在csv中有保存
-3. 表征模型可以用tSNE可视化、用指标表征 val_train.py
-**损失函数为 SupConLoss**
+查看训练过程：
+```
+tensorboard --logdir=save/SupCon/sp_tensorboard
+```
+
+2. 表征模型可以用tSNE可视化main_tSNE.py、用指标表征 val_train.py
+    **损失函数为 SupConLoss**
+
 ```commandline
 
 Evaluation Results:
