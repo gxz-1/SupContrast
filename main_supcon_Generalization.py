@@ -149,9 +149,9 @@ def set_loader(opt):
         train_transform = transforms.Compose([
         transforms.RandomCrop((500, 500)), #随机裁剪
         # transforms.RandomResizedCrop((500, 500), scale=(0.9, 1.1)),  # 随机缩放裁剪
-        transforms.RandomHorizontalFlip(),                          # 随机水平翻转
+        #transforms.RandomHorizontalFlip(),                          # 随机水平翻转
         # transforms.RandomRotation(10),                              # 随机旋转
-        transforms.ColorJitter(brightness=0.1, contrast=0.1),  # 随机调整亮度和对比度
+        #transforms.ColorJitter(brightness=0.1, contrast=0.1),  # 随机调整亮度和对比度
         transforms.ToTensor(),
         # transforms.CenterCrop((500,500)),
         # transforms.Normalize(mean=[0.3743],std=[0.0576])  # 数据标准化                 

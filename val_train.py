@@ -204,6 +204,7 @@ def main():
     print("Calculating KNN accuracy...")
     # 计算k=1和k=5两种情况下的准确率
     knn_accuracy_k1 = calculate_knn_accuracy(features, labels, k=1)
+    knn_accuracy_k3 = calculate_knn_accuracy(features, labels, k=3)
     knn_accuracy_k5 = calculate_knn_accuracy(features, labels, k=5)
 
     # 打印结果
@@ -214,6 +215,7 @@ def main():
         f"Inter-class distance - Mean: {np.mean(distances['inter_class']):.4f}, Std: {np.std(distances['inter_class']):.4f}")
     print(f"KNN (k=1) Accuracy: {knn_accuracy_k1:.4f}")
     # 添加k=5的KNN准确率输出
+    print(f"KNN (k=3) Accuracy: {knn_accuracy_k3:.4f}")
     print(f"KNN (k=5) Accuracy: {knn_accuracy_k5:.4f}")
 
 
