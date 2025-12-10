@@ -41,8 +41,9 @@ nohup python new_main_supcon_Generalization.py --batch_size 16 \
 ```
 tensorboard --logdir=save/SupCon/sp_tensorboard
 ```
-simclr:save/SupCon/sp_models/generalizetion_tranSimCLR_sp_CustomCNNmini_lr_0.2_decay_1e-05_bsz_16_temp_0.1_trial_0_cosine/ckpt_epoch_40.pth
+simclr:save/SupCon/sp_models/generalizetion_tranSimCLR_sp_CustomCNNmini_lr_0.2_decay_1e-05_bsz_16_temp_0.1_trial_0_cosine/ckpt_epoch_30.pth
 supcon:save/ckpt_epoch_140.pth
+ContrastiveLoss:save/SupCon/sp_models/generalizetion_tranContrastiveLoss_sp_CustomCNNmini_lr_0.2_decay_1e-05_bsz_16_temp_1.0_trial_0_cosine/ckpt_epoch_20.pth
 2. 表征模型可以用tSNE可视化main_tSNE.py、用指标表征 val_train.py
 ```commandline
 损失函数为 SupConLoss
@@ -65,7 +66,13 @@ KNN (k=1) Accuracy: 1.0000
 KNN (k=3) Accuracy: 0.9938
 KNN (k=5) Accuracy: 0.9912
 
-
+损失函数为 ContrastiveLoss
+Intra-class distance - Mean: 0.3668, Std: 0.3037
+Inter-class distance - Mean: 1.5114, Std: 0.4307
+类内/类间距离比: 0.2414
+KNN (k=1) Accuracy: 1.0000
+KNN (k=3) Accuracy: 0.9988
+KNN (k=5) Accuracy: 0.9981
 ```
 ## 微调 main_linear.py
 classifier有MLP和linear两种

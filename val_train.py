@@ -14,7 +14,7 @@ from networks.resnet_big import CustomCNN, CustomCNNmini, CustomCNNminidrop
 def parse_option():
     parser = argparse.ArgumentParser('argument for evaluation')
     
-    parser.add_argument('--model_path', type=str, default='save/ckpt_epoch_140.pth', 
+    parser.add_argument('--model_path', type=str, default='save/SupCon/sp_models/generalizetion_tranSimCLR_sp_CustomCNNmini_lr_0.2_decay_1e-05_bsz_16_temp_0.1_trial_0_cosine/ckpt_epoch_25.pth',
                         help='path to the trained model')
     parser.add_argument('--data_folder', type=str, default=r'E:\RFcode\rf数据集\UAVSet\test',
                         help='path to the dataset')
